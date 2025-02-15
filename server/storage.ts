@@ -13,6 +13,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUsers(): Promise<User[]>;
 
   // Class operations
   createClass(classData: Partial<Class>): Promise<Class>;
@@ -42,6 +43,10 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
   }
 
   async getUser(id: number): Promise<User | undefined> {

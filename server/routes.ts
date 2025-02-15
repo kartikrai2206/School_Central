@@ -7,6 +7,15 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
+  // Users (Admin only)
+  app.get("/api/users", async (req, res) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).send("Only admins can view all users");
+    }
+    const users = await storage.getUsers();
+    res.json(users);
+  });
+
   // Classes
   app.get("/api/classes", async (req, res) => {
     const classes = await storage.getClasses();
