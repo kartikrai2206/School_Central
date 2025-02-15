@@ -16,6 +16,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(users);
   });
 
+  app.post("/api/users", async (req, res) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).send("Only admins can create users");
+    }
+    const user = await storage.createUser(req.body);
+    res.status(201).json(user);
+  });
+
   // Classes
   app.get("/api/classes", async (req, res) => {
     const classes = await storage.getClasses();
@@ -23,8 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/classes", async (req, res) => {
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).send("Only admins can create classes");
+    if (!req.user) {
+      return res.status(401).send("Authentication required");
     }
     const newClass = await storage.createClass(req.body);
     res.status(201).json(newClass);
