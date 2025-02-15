@@ -14,7 +14,8 @@ import {
   GraduationCap, 
   LayoutDashboard, 
   LogOut, 
-  Users 
+  Users,
+  BarChart
 } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -48,6 +49,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <a className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent">
                   <BookOpen size={20} />
                   <span>Classes</span>
+                </a>
+              </Link>
+              <Link href="/analytics">
+                <a className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent">
+                  <BarChart size={20} />
+                  <span>Analytics</span>
                 </a>
               </Link>
             </>
