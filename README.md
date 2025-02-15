@@ -23,7 +23,7 @@ Welcome to **School Management Software**, a powerful and user-friendly solution
 🔹 **Database:** PostgreSQL / MySQL / MongoDB  
 🔹 **Authentication:** JWT / OAuth  
 🔹 **Cloud Storage:** AWS S3 / Firebase Storage  
-🔹 **Deployment:** Docker / Kubernetes / CI/CD Pipelines  
+🔹 **Deployment:** Docker / Kubernetes / CI/CD Pipelines [X]  
 
 ## 📸 Screenshots  [Under Development]
   
