@@ -24,6 +24,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(user);
   });
 
+  // Analytics endpoints
+  app.get("/api/analytics/summary", async (req, res) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).send("Only admins can view analytics");
+    }
+    const summary = await storage.getAnalyticsSummary();
+    res.json(summary);
+  });
+
+  app.get("/api/analytics/trends", async (req, res) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).send("Only admins can view analytics");
+    }
+    const { timeRange = "month" } = req.query;
+    const trends = await storage.getAnalyticsTrends(timeRange as string);
+    res.json(trends);
+  });
+
   // Classes
   app.get("/api/classes", async (req, res) => {
     const classes = await storage.getClasses();

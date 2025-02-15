@@ -4,25 +4,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Download, Filter } from "lucide-react";
+import { Download, Filter, Loader2 } from "lucide-react";
 import { useState } from "react";
-
-// Temporary mock data - will be replaced with real data from API
-const mockData = [
-  { name: 'Jan', attendance: 85, assignments: 92, grades: 88 },
-  { name: 'Feb', attendance: 88, assignments: 85, grades: 90 },
-  { name: 'Mar', attendance: 92, assignments: 89, grades: 87 },
-  { name: 'Apr', attendance: 90, assignments: 95, grades: 91 },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState("month");
 
+  const { data: summary, isLoading: isSummaryLoading } = useQuery({
+    queryKey: ["/api/analytics/summary"],
+  });
+
+  const { data: trends, isLoading: isTrendsLoading } = useQuery({
+    queryKey: ["/api/analytics/trends", timeRange],
+  });
+
   const downloadReport = () => {
     // TODO: Implement report download functionality
     console.log("Downloading report...");
   };
+
+  if (user?.role !== "admin") {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center h-[80vh]">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">You don't have access to this page.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (isSummaryLoading || isTrendsLoading) {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center h-[80vh]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -36,34 +61,42 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader>
               <CardTitle>Total Students</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">1,234</div>
-              <p className="text-muted-foreground">+12% from last month</p>
+              <div className="text-3xl font-bold">{summary?.totalStudents}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Average Attendance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">89%</div>
+              <div className="text-3xl font-bold">{summary?.averageAttendance}%</div>
               <p className="text-muted-foreground">Past 30 days</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Average Grade</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">B+</div>
+              <div className="text-3xl font-bold">{summary?.averageGrade}%</div>
               <p className="text-muted-foreground">Current semester</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Classes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{summary?.totalClasses}</div>
             </CardContent>
           </Card>
         </div>
@@ -91,7 +124,7 @@ export default function AnalyticsPage() {
           <CardContent>
             <div className="h-[400px] mt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockData}>
+                <BarChart data={trends}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
