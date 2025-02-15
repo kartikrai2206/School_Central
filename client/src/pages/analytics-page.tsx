@@ -8,15 +8,29 @@ import { Download, Filter, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+type AnalyticsSummary = {
+  totalStudents: number;
+  averageAttendance: number;
+  averageGrade: number;
+  totalClasses: number;
+};
+
+type AnalyticsTrend = {
+  name: string;
+  attendance: number;
+  assignments: number;
+  grades: number;
+};
+
 export default function AnalyticsPage() {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState("month");
 
-  const { data: summary, isLoading: isSummaryLoading } = useQuery({
+  const { data: summary, isLoading: isSummaryLoading } = useQuery<AnalyticsSummary>({
     queryKey: ["/api/analytics/summary"],
   });
 
-  const { data: trends, isLoading: isTrendsLoading } = useQuery({
+  const { data: trends, isLoading: isTrendsLoading } = useQuery<AnalyticsTrend[]>({
     queryKey: ["/api/analytics/trends", timeRange],
   });
 
@@ -124,7 +138,7 @@ export default function AnalyticsPage() {
           <CardContent>
             <div className="h-[400px] mt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={trends}>
+                <BarChart data={trends || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />

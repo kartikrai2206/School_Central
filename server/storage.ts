@@ -139,36 +139,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalyticsSummary() {
-    // Fix query execution and result handling
-    const totalStudentsResult = await db
-      .select({ count: sql<number>`count(*)` })
+    // Total students query
+    const studentsResult = await db
+      .select({ count: sql<number>`count(*)::int` })
       .from(users)
       .where(eq(users.role, 'student'));
 
-    const averageAttendanceResult = await db
+    // Average attendance query with coalesce to handle null
+    const attendanceResult = await db
       .select({
-        average: sql<number>`avg(case when status = 'present' then 100 else 0 end)`
+        average: sql<number>`coalesce(avg(case when status = 'present' then 100 else 0 end)::int, 0)`
       })
       .from(attendance);
 
-    const averageGradeResult = await db
-      .select({ average: sql<number>`avg(score)` })
+    // Average grade query with coalesce to handle null
+    const gradeResult = await db
+      .select({
+        average: sql<number>`coalesce(avg(score)::int, 0)`
+      })
       .from(grades);
 
-    const totalClassesResult = await db
-      .select({ count: sql<number>`count(*)` })
+    // Total classes query
+    const classesResult = await db
+      .select({ count: sql<number>`count(*)::int` })
       .from(classes);
 
     return {
-      totalStudents: totalStudentsResult[0]?.count || 0,
-      averageAttendance: Math.round(averageAttendanceResult[0]?.average || 0),
-      averageGrade: Math.round(averageGradeResult[0]?.average || 0),
-      totalClasses: totalClassesResult[0]?.count || 0,
+      totalStudents: studentsResult[0]?.count || 0,
+      averageAttendance: attendanceResult[0]?.average || 0,
+      averageGrade: gradeResult[0]?.average || 0,
+      totalClasses: classesResult[0]?.count || 0,
     };
   }
 
   async getAnalyticsTrends(timeRange: string) {
-    // For now, return mock data as we need to implement complex date-based aggregations
+    // For now, return mock data while we implement the real queries
     const mockTrends = [
       { name: 'Jan', attendance: 85, assignments: 92, grades: 88 },
       { name: 'Feb', attendance: 88, assignments: 85, grades: 90 },
