@@ -79,7 +79,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClass(classData: Partial<Class>): Promise<Class> {
-    const [newClass] = await db.insert(classes).values(classData).returning();
+    const [newClass] = await db.insert(classes).values({
+      name: classData.name!,
+      teacherId: classData.teacherId!,
+      description: classData.description || null,
+    }).returning();
     return newClass;
   }
 
@@ -93,7 +97,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAssignment(assignment: Partial<Assignment>): Promise<Assignment> {
-    const [newAssignment] = await db.insert(assignments).values(assignment).returning();
+    const [newAssignment] = await db.insert(assignments).values({
+      title: assignment.title!,
+      classId: assignment.classId!,
+      description: assignment.description || null,
+      dueDate: assignment.dueDate || null,
+    }).returning();
     return newAssignment;
   }
 
@@ -102,7 +111,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addGrade(grade: Partial<Grade>): Promise<Grade> {
-    const [newGrade] = await db.insert(grades).values(grade).returning();
+    const [newGrade] = await db.insert(grades).values({
+      studentId: grade.studentId!,
+      assignmentId: grade.assignmentId!,
+      score: grade.score!,
+      feedback: grade.feedback || null,
+    }).returning();
     return newGrade;
   }
 
@@ -111,7 +125,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markAttendance(attendanceData: Partial<Attendance>): Promise<Attendance> {
-    const [newAttendance] = await db.insert(attendance).values(attendanceData).returning();
+    const [newAttendance] = await db.insert(attendance).values({
+      studentId: attendanceData.studentId!,
+      classId: attendanceData.classId!,
+      date: attendanceData.date!,
+      status: attendanceData.status!,
+    }).returning();
     return newAttendance;
   }
 
@@ -120,30 +139,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalyticsSummary() {
-    const [[totalStudents]] = await db
+    // Fix query execution and result handling
+    const totalStudentsResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(users)
       .where(eq(users.role, 'student'));
 
-    const [[averageAttendance]] = await db
+    const averageAttendanceResult = await db
       .select({
         average: sql<number>`avg(case when status = 'present' then 100 else 0 end)`
       })
       .from(attendance);
 
-    const [[averageGrade]] = await db
+    const averageGradeResult = await db
       .select({ average: sql<number>`avg(score)` })
       .from(grades);
 
-    const [[totalClasses]] = await db
+    const totalClassesResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(classes);
 
     return {
-      totalStudents: totalStudents?.count || 0,
-      averageAttendance: Math.round(averageAttendance?.average || 0),
-      averageGrade: Math.round(averageGrade?.average || 0),
-      totalClasses: totalClasses?.count || 0,
+      totalStudents: totalStudentsResult[0]?.count || 0,
+      averageAttendance: Math.round(averageAttendanceResult[0]?.average || 0),
+      averageGrade: Math.round(averageGradeResult[0]?.average || 0),
+      totalClasses: totalClassesResult[0]?.count || 0,
     };
   }
 
