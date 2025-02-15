@@ -24,6 +24,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(user);
   });
 
+  app.post("/api/users/bulk", async (req, res) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).send("Only admins can create users");
+    }
+
+    // Validate that we received an array of users
+    if (!Array.isArray(req.body)) {
+      return res.status(400).send("Expected an array of users");
+    }
+
+    try {
+      const users = await storage.createBulkUsers(req.body);
+      res.status(201).json(users);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
   // Analytics endpoints
   app.get("/api/analytics/summary", async (req, res) => {
     if (!req.user || req.user.role !== "admin") {

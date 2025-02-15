@@ -14,6 +14,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUsers(): Promise<User[]>;
+  createBulkUsers(users: InsertUser[]): Promise<User[]>; // Added method
 
   // Analytics operations
   getAnalyticsSummary(): Promise<{
@@ -182,6 +183,22 @@ export class DatabaseStorage implements IStorage {
     ];
 
     return mockTrends;
+  }
+
+  async createBulkUsers(insertUsers: InsertUser[]): Promise<User[]> {
+    // Using a transaction to ensure all users are created or none
+    return await db.transaction(async (tx) => {
+      const createdUsers = await Promise.all(
+        insertUsers.map(async (user) => {
+          const [createdUser] = await tx
+            .insert(users)
+            .values(user)
+            .returning();
+          return createdUser;
+        })
+      );
+      return createdUsers;
+    });
   }
 }
 
